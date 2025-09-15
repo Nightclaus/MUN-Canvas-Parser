@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Content Parser (CCP)</title>
+    <style>
+        /* --- Basic Styling & Layout --- */
+        :root {
+            --primary-bg: #f4f7f9;
+            --panel-bg: #ffffff;
+            --border-color: #d1d8e0;
+            --text-color: #2c3e50;
+            --header-color: #34495e;
+            --button-bg: #2980b9;
+            --button-hover-bg: #3498db;
+            --secondary-button-bg: #7f8c8d;
+            --secondary-button-hover-bg: #95a5a6;
+            --error-color: #e74c3c;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--header-color);
+            margin-bottom: 5px;
+        }
+        
+        header p {
+            margin-top: 0;
+            color: #7f8c8d;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            width: 100%;
+            height: calc(100vh - 120px);
+        }
+
+        .panel {
+            flex: 1;
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--header-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        textarea.error {
+            border-color: var(--error-color);
+            box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+        }
+
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #parse-btn { background-color: var(--button-bg); }
+        #parse-btn:hover { background-color: var(--button-hover-bg); }
+        #preview-btn { background-color: var(--secondary-button-bg); }
+        #preview-btn:hover { background-color: var(--secondary-button-hover-bg); }
+        #copy-btn { background-color: var(--secondary-button-bg); }
+        #copy-btn:hover { background-color: var(--secondary-button-hover-bg); }
+        
+        .copy-success {
+            background-color: #27ae60;
+        }
+
+        /* --- Modal Styling --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--primary-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+             margin: 0;
+             color: var(--header-color);
+        }
+        .modal-header span {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            font-weight: bold;
+            color: #7f8c8d;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close-btn:hover {
+            color: var(--text-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Canvas Content Parser (CCP)</h1>
+        <p>A tool to convert structured JSON into Canvas-ready HTML</p>
+    </header>
+
+    <div class="container">
+        <div class="panel input-panel">
+            <h2>JSON Input</h2>
+            <textarea id="json-input" spellcheck="false"></textarea>
+            <div class="controls">
+                <button id="parse-btn">Parse to HTML</button>
+            </div>
+        </div>
+
+        <div class="panel output-panel">
+            <h2>Generated HTML (Ready for Canvas)</h2>
+            <textarea id="html-output" readonly></textarea>
+            <div class="controls">
+                <button id="preview-btn">Show Preview</button>
+                <button id="copy-btn">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3>Live Preview</h3>
+                    <span>Note: Final appearance in Canvas may vary slightly.</span>
+                </div>
+                <span id="close-modal-btn" class="close-btn">&times;</span>
+            </div>
+            <div id="preview-content">
+                <!-- Parsed HTML will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonInput = document.getElementById('json-input');
+            const htmlOutput = document.getElementById('html-output');
+            const parseBtn = document.getElementById('parse-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const previewBtn = document.getElementById('preview-btn');
+            const modalOverlay = document.getElementById('preview-modal');
+            const previewContent = document.getElementById('preview-content');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            // --- DEFAULTS ---
+            const defaultJson = {
+                "type": "Page",
+                "children": [
+                    {
+                        "type": "ExecutiveIntro",
+                        "properties": {
+                            "welcomeTitle": "Welcome, Future Diplomats!",
+                            "welcomeText": "Welcome to the exciting world of Model United Nations! This first session is all about building a strong foundation.",
+                            "objectivesTitle": "Session Objectives",
+                            "objectivesList": [
+                                "Define Model UN and its purpose.",
+                                "Identify key committee roles.",
+                                "Outline the flow of debate.",
+                                "Use points, motions, and yields."
+                            ]
+                        }
+                    },
+                    {
+                        "type": "SectionCard",
+                        "properties": {
+                            "title": "The Rules of the Room: Points of Procedure",
+                            "introText": "These are the rules that keep debate orderly and fair. Mastering 'Points' allows you to navigate the committee with confidence."
+                        },
+                        "children": [
+                             {
+                                "type": "DropDown",
+                                "properties": {
+                                    "title": "Point of Personal Privilege",
+                                    "content": "<strong>Purpose:</strong> Used when your personal comfort is impaired (e.g., it's too hot/cold, you can't hear).<br><strong>Note:</strong> This is the only point that can interrupt a speaker."
+                                }
+                            },
+                            {
+                                "type": "DropDown",
+                                "properties": {
+                                    "title": "Point of Order",
+                                    "content": "<strong>Purpose:</strong> To point out a mistake in parliamentary procedure made by the Dais or another delegate."
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "SectionCard",
+                        "properties": { "title": "Driving the Debate: Motions", "introText": "If Points are the rules of the road, <strong>Motions</strong> are how you steer the car." },
+                        "children": [
+                            {
+                                "type": "BlueBanner",
+                                "properties": { "title": "Key Motions to Know", "subtext": "A well-timed motion can shift the entire direction of the debate." }
+                            },
+                             {
+                                "type": "DropDown",
+                                "properties": { "title": "Motion for a Moderated Caucus", "content": "<strong>Purpose:</strong> To have a focused, topic-specific debate." }
+                            }
+                        ]
+                    }
+                ]
+            };
+            jsonInput.value = JSON.stringify(defaultJson, null, 2);
+
+
+            // --- MODULAR COMPONENT RENDERERS ---
+            const componentRenderers = {
+                
+                ExecutiveIntro: (props) => {
+                    const objectivesHtml = props.objectivesList.map(item => 
+                        `<li style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.4em; margin-right: 12px; color: #7f8c8d;">☐</span> ${item}</li>`
+                    ).join('');
+
+                    return `
+<div style="background-color: #f7f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tbody>
+            <tr>
+                <td style="width: 66%; padding: 20px; vertical-align: top; border-right: 1px solid #e0e0e0;">
+                    <h2 style="color: #2980b9; border-bottom: 3px solid #e0e0e0; padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; font-size: 2em; font-weight: 600;">${props.welcomeTitle}</h2>
+                    <p style="font-size: 1.1em;">${props.welcomeText}</p>
+                </td>
+                <td style="width: 34%; padding: 20px; vertical-align: top;">
+                    <h2 style="color: #2980b9; border-bottom: 3px solid #e0e0e0; padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; font-size: 1.5em; font-weight: 600;">${props.objectivesTitle}</h2>
+                    <ul style="font-size: 1em; list-style-type: none; padding-left: 0; margin: 0;">${objectivesHtml}</ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>`;
+                },
+                
+                SectionCard: (props, childrenHtml) => {
+                    return `
+<div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <h3 style="background-color: #34495e; color: white; padding: 15px 25px; border-radius: 8px; margin-top: 0; margin-bottom: 30px; font-size: 1.5em; display: inline-block;">${props.title}</h3>
+    <p style="font-size: 1.1em;">${props.introText}</p>
+    ${childrenHtml}
+</div>`;
+                },
+
+                BlueBanner: (props) => {
+                    return `
+<div style="background-color: #eaf2f8; border-left: 5px solid #2980b9; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+    <h4 style="margin-top: 0; color: #2980b9; font-size: 1.2em;">${props.title}</h4>
+    <p style="margin-bottom: 0;">${props.subtext}</p>
+</div>`;
+                },
+
+                DropDown: (props) => {
+                    return `
+<details style="margin-bottom: 10px;">
+    <summary style="cursor: pointer; font-weight: bold; padding: 15px 20px; background-color: #f7f9fa; border: 1px solid #e0e0e0; border-radius: 8px; display: block;">${props.title}</summary>
+    <div style="border: 1px solid #e0e0e0; border-top: none; padding: 20px; margin-top: -1px; background-color: #ffffff; border-radius: 0 0 8px 8px;">
+        <p style="margin: 0;">${props.content}</p>
+    </div>
+</details>`;
+                }
+            };
+
+
+            // --- CORE PARSER LOGIC ---
+            const renderComponent = (component) => {
+                if (!component || !component.type) return '<!-- Invalid component structure -->';
+                let childrenHtml = '';
+                if (component.children && Array.isArray(component.children)) {
+                    childrenHtml = component.children.map(child => renderComponent(child)).join('\n');
+                }
+                const renderer = componentRenderers[component.type];
+                if (renderer) return renderer(component.properties || {}, childrenHtml);
+                return childrenHtml;
+            };
+            
+
+            const parseAndRender = () => {
+                jsonInput.classList.remove('error');
+                const jsonText = jsonInput.value;
+                try {
+                    const data = JSON.parse(jsonText);
+                    if (data.type !== 'Page' || !data.children) throw new Error('Root JSON object must have a "type" of "Page" and a "children" array.');
+                    const finalHtml = data.children.map(child => renderComponent(child)).join('\n\n');
+                    htmlOutput.value = finalHtml;
+                    return true; // Success
+                } catch (error) {
+                    console.error("Parsing Error:", error);
+                    alert(`Error parsing JSON: ${error.message}`);
+                    jsonInput.classList.add('error');
+                    htmlOutput.value = `<!-- PARSING FAILED: ${error.message} -->`;
+                    return false; // Failure
+                }
+            };
+
+
+            // --- EVENT LISTENERS ---
+            parseBtn.addEventListener('click', parseAndRender);
+            
+            previewBtn.addEventListener('click', () => {
+                const success = parseAndRender(); // Re-parse to get latest content
+                if (success) {
+                    previewContent.innerHTML = htmlOutput.value;
+                    modalOverlay.classList.add('visible');
+                }
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                modalOverlay.classList.remove('visible');
+            });
+
+            modalOverlay.addEventListener('click', (event) => {
+                if (event.target === modalOverlay) { // Only close if clicking the background
+                    modalOverlay.classList.remove('visible');
+                }
+            });
+            
+            copyBtn.addEventListener('click', () => {
+                if (!htmlOutput.value) return;
+                htmlOutput.select();
+                navigator.clipboard.writeText(htmlOutput.value).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('copy-success');
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.classList.remove('copy-success');
+                    }, 2000);
+                }).catch(err => {
+                    alert('Failed to copy text. Please copy manually.');
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>
