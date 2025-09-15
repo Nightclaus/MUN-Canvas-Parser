@@ -289,7 +289,7 @@
                                 "properties": { "title": "Motion for a Moderated Caucus", "content": "<strong>Purpose:</strong> To have a focused, topic-specific debate." }
                             }
                         ]
-                    }
+                    },
                 ]
             };
             jsonInput.value = JSON.stringify(defaultJson, null, 2);
@@ -347,7 +347,12 @@
         <p style="margin: 0;">${props.content}</p>
     </div>
 </details>`;
-                }
+                },
+
+                HtmlBlock: (props) => {
+                    // This component just passes through the raw HTML content.
+                    return props.content || '';
+                },
             };
 
 
