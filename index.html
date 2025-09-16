@@ -340,8 +340,11 @@
                 },
 
                 DropDown: (props) => {
+                    // Check for the isOpen property. If it's true, add the 'open' attribute. Otherwise, add an empty string.
+                    const openAttribute = props.isOpen ? 'open' : '';
+
                     return `
-<details style="margin-bottom: 10px;">
+<details ${openAttribute} style="margin-bottom: 10px;">
     <summary style="cursor: pointer; font-weight: bold; padding: 15px 20px; background-color: #f7f9fa; border: 1px solid #e0e0e0; border-radius: 8px; display: block;">${props.title}</summary>
     <div style="border: 1px solid #e0e0e0; border-top: none; padding: 20px; margin-top: -1px; background-color: #ffffff; border-radius: 0 0 8px 8px;">
         <p style="margin: 0;">${props.content}</p>
