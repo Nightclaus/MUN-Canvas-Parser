@@ -366,6 +366,19 @@
     <p style="margin-bottom: 0;">${props.subtext}</p>
 </div>`;
                 },
+
+                ThemeAccordion: (props) => {
+                    // Check for the isOpen property. If true, set the class to 'active'.
+                    const activeClass = props.isOpen ? 'active' : '';
+
+                    return `
+<div class="dp-panel-group">
+    <h3 class="dp-panel-heading ${activeClass}">${props.title}</h3>
+    <div class="dp-panel-content ${activeClass}">
+        ${props.content}
+    </div>
+</div>`;
+                },
             };
 
 
