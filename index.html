@@ -90,10 +90,96 @@
             const closeModalBtn = document.getElementById('close-modal-btn');
             
             // Default JSON for demonstration
-            jsonInput.value = JSON.stringify({"type":"Page","properties":{"pageTitle":"Testing Both Dropdown Types"},"children":[{"type":"SectionCard","properties":{"title":"Dropdown Comparison","introText":"This section demonstrates both available dropdown components. Use 'DropDown' for universal previews and 'CanvasDropdown' for live Canvas pages."},"children":[{"type":"DropDown","properties":{"title":"I am the LEGACY Dropdown (<details>)","content":"I am interactive in any browser, including this preview window.","isOpen":true}},{"type":"CanvasDropdown","properties":{"title":"I am the CANVAS Dropdown (Theme-specific)","content":"I am only interactive on a live Canvas page with your theme, but I can be default-open there. I am also interactive in this preview.","isOpen":true}}]}]}, null, 2);
+            jsonInput.value = JSON.stringify(
+                {
+                "type": "Page",
+                "properties": {
+                    "pageTitle": "The Foundations of MUN"
+                },
+                "children": [
+                    {
+                    "type": "ExecutiveIntro",
+                    "properties": {
+                        "mainTitle": "The Foundations of MUN",
+                        "mainText": "This session covers the essential building blocks of Model UN. We will explore what MUN is, the key roles in a committee, the standard flow of debate, and the fundamental rules of procedure that govern discussion.",
+                        "objectivesTitle": "Session Objectives",
+                        "objectivesList": [
+                            "Define the purpose of Model UN.",
+                            "Identify the roles of the Dais and Delegates.",
+                            "Outline the 7 stages of a debate.",
+                            "Use Points, Motions, and Yields correctly."
+                            ]
+                        }
+                    },
+                    {"type": "SectionCard",
+                    "properties": {
+                        "title": "What is Model UN? The Core Concepts",
+                        "introText": "Model UN is fundamentally an exercise in collaborative problem-solving. As a delegate representing an assigned country, your goal is to work with others to create written solutions (resolutions) to pressing global issues."
+                        },
+                        "children": [
+                        {"type": "CustomBanner",
+                            "properties": {
+                                "title": "Key Roles & The Flow of Debate",
+                                "subtext": "Understanding who is in the room and the standard path a debate follows is the first step to becoming an effective delegate.",
+                                "backgroundColor": "#e8f8f5",
+                                "borderColor": "#27ae60"
+                            }
+                        }]
+                    }
+                ]
+            }, null, 2);
 
             const componentRenderers = {
-                ExecutiveIntro: (props) => { return `<div style="background-color: #f7f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);"><table style="width: 100%; border-collapse: collapse;"><tbody><tr><td style="width: 66%; padding: 20px; vertical-align: top; border-right: 1px solid #e0e0e0;"><h2 style="color: #2980b9; border-bottom: 3px solid #e0e0e0; padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; font-size: 2em; font-weight: 600;">${props.welcomeTitle}</h2><p style="font-size: 1.1em;">${props.welcomeText}</p></td><td style="width: 34%; padding: 20px; vertical-align: top;"><h2 style="color: #2980b9; border-bottom: 3px solid #e0e0e0; padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; font-size: 1.5em; font-weight: 600;">${props.objectivesTitle}</h2><ul style="font-size: 1em; list-style-type: none; padding-left: 0; margin: 0;">${props.objectivesList.map(item => `<li style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.4em; margin-right: 12px; color: #7f8c8d;">☐</span> ${item}</li>`).join('')}</ul></td></tr></tbody></table></div>`; },
+                ObjectivesList: (props) => {
+                    const objectivesHtml = props.items.map(item => 
+                        `<li style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.4em; margin-right: 12px; color: #7f8c8d;">☐</span> ${item}</li>`
+                    ).join('');
+
+                    return `
+                <div style="width: 100%; margin-top: 30px;">
+                    <h2 style="color: #2980b9; border-bottom: 3px solid #e0e0e0; padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; font-size: 1.5em; font-weight: 600;">${props.title}</h2>
+                    <ul style="font-size: 1em; list-style-type: none; padding-left: 0; margin: 0;">
+                        ${objectivesHtml}
+                    </ul>
+                </div>`;
+                },
+
+                ExecutiveIntro: (props) => {
+                    const titleBgColor = '#1B2631';    // Dark Navy Blue
+                    const contentBgColor = '#EAECEE';  // Very light grey-blue
+
+                    // --- Static Info Box ---
+                    const staticInfoBoxHtml = `
+<div style="flex: 2; border: 1px solid #d1d8e0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+    <div style="background-color: ${titleBgColor}; color: #ffffff; padding: 15px 20px; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 1.9em;">
+        ${props.mainTitle}
+    </div>
+    <div style="background-color: ${contentBgColor}; padding: 20px; border-radius: 0 0 8px 8px; flex-grow: 1; display: flex;">
+        <p style="margin: 0; font-size: 1.4em;">${props.mainText}</p>
+    </div>
+</div>`;
+                    // --- Objectives List ---
+                    const objectivesListHtml = (props.objectivesList || []).map(item => 
+                        `<li style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.4em; margin-right: 12px; color: #7f8c8d;">☐</span> ${item}</li>`
+                    ).join('');
+                    const objectivesWidgetHtml = `
+<div style="flex: 1; padding-left: 30px; border-left: 1px solid #e0e0e0;">
+    <h2 style="color: #2980b9; border-bottom: 3px solid #e0e0e0; padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; font-size: 1.5em; font-weight: 600;">
+        ${props.objectivesTitle}
+    </h2>
+    <ul style="font-size: 1em; list-style-type: none; padding-left: 0; margin: 0;">
+        ${objectivesListHtml}
+    </ul>
+</div>`;
+                    // --- Final Layout ---
+                    return `
+<!-- START: Executive Introduction Block -->
+<div style="background-color: #f7f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; margin-top: 20px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; gap: 30px;">
+    ${staticInfoBoxHtml}
+    ${objectivesWidgetHtml}
+</div>
+<!-- END: Executive Introduction Block -->`;
+                },
                 SectionCard: (props, childrenHtml) => {
                     let finalChildrenHtml = childrenHtml;
                     if (childrenHtml && childrenHtml.includes('class="dp-panel-group"')) {
