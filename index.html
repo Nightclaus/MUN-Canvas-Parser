@@ -382,21 +382,50 @@
             const parseAndRender = () => {
                 jsonInput.classList.remove('error');
                 const jsonText = jsonInput.value;
+
                 try {
                     const data = JSON.parse(jsonText);
-                    if (data.type !== 'Page' || !data.children) throw new Error('Root JSON object must have a "type" of "Page" and a "children" array.');
-                    const finalHtml = data.children.map(child => renderComponent(child)).join('\n\n');
+                    
+                    if (data.type !== 'Page' || !data.children) {
+                        throw new Error('Root JSON object must have a "type" of "Page" and a "children" array.');
+                    }
+
+                    // 1. Get the page title from the JSON, with a fallback default.
+                    const pageTitle = (data.properties && data.properties.pageTitle) 
+                        ? data.properties.pageTitle 
+                        : "Model UN Club Page";
+
+                    // 2. Define the header and footer templates.
+                    const tksHeader = `<div id="dp-wrapper" class="dp-wrapper dp-flat-sections">
+    <header class="dp-header dp-flat-sections ">
+        <h2 class="dp-heading"><span class="dp-header-pre"><span class="dp-header-pre-1">MODEL UNITED NATION CLUB</span> </span><span class="dp-header-title">${pageTitle}</span></h2>
+    </header>
+    <div class="dp-content-block kl_readings2">
+        <h3 class="dp-has-icon"><i class="dp-icon icon-info " aria-hidden="true"><span class="dp-icon-content" style="display: none;">&nbsp;</span></i> Information&nbsp;</h3>
+        <p>&nbsp;</p>`;
+                    
+                    const tksFooter = `
+        <p>&nbsp;</p>
+    </div>
+</div>`;
+
+                    // 3. Render the main content by mapping over the children.
+                    const contentHtml = data.children.map(child => renderComponent(child)).join('\n\n');
+
+                    // 4. Combine the header, content, and footer into the final output.
+                    const finalHtml = `${tksHeader}\n\n${contentHtml}\n\n${tksFooter}`;
+                    
                     htmlOutput.value = finalHtml;
-                    return true; // Success
+                    return true; // Indicate success
+
                 } catch (error) {
                     console.error("Parsing Error:", error);
                     alert(`Error parsing JSON: ${error.message}`);
                     jsonInput.classList.add('error');
                     htmlOutput.value = `<!-- PARSING FAILED: ${error.message} -->`;
-                    return false; // Failure
+                    return false; // Indicate failure
                 }
             };
-
 
             // --- EVENT LISTENERS ---
             parseBtn.addEventListener('click', parseAndRender);
