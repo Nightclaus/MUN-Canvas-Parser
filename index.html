@@ -353,6 +353,16 @@
                     // This component just passes through the raw HTML content.
                     return props.content || '';
                 },
+
+                CustomBanner: (props) => {
+                    const bgColor = props.backgroundColor || '#f4f4f4';
+                    const borderColor = props.borderColor || '#7f8c8d';
+                    return `
+<div style="background-color: ${bgColor}; border-left: 5px solid ${borderColor}; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+    <h4 style="margin-top: 0; color: ${borderColor}; font-size: 1.2em;">${props.title}</h4>
+    <p style="margin-bottom: 0;">${props.subtext}</p>
+</div>`;
+                },
             };
 
 
